@@ -1,47 +1,88 @@
-import gspread
-from google.oauth2 import service_account
-import pandas as pd
-from flask import Flask, render_template
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NBA Live Model</title>
+    <style>
+        /* Your existing styles here */
 
-app = Flask(__name__)
+        /* Add style for the upload button */
+        #upload-button {
+            padding: 10px 20px;
+            background-color: #007bff; /* Blue color, you can change it */
+            color: #fff;
+            cursor: pointer;
+        }
 
-def fetch_data(sheet_name):
-    # Set up Google Sheets API credentials
-    credentials = service_account.Credentials.from_service_account_file(
-        'C:/Users/mpobr/Downloads/nba-player-prop-model-fcab08224af6.json',
-        scopes=["https://www.googleapis.com/auth/spreadsheets"]
-    )
+        /* Add styles for the input fields */
+        .input-field {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>NBA Live Model</h1>
 
-    # Authenticate with the Google Sheets API using the credentials
-    gc = gspread.Client(auth=credentials)
+        <!-- Add the upload button -->
+        <input type="file" id="file-input" accept=".csv" style="display: none;">
+        <label for="file-input" id="upload-button">Upload Projections</label>
 
-    # URL of your Google Sheets document
-    url = 'https://docs.google.com/spreadsheets/d/1SwQJeR8mxvJS31wgYs4gY7h6OUuP7Ogk2Mi9c-gb2v4/edit#gid=700047262'
+        <!-- Input fields for game information -->
+        <input type="text" class="input-field" placeholder="Game Score" id="game-score">
+        <input type="text" class="input-field" placeholder="Game Time" id="game-time">
 
-    # Open the specific sheet by URL
-    doc = gc.open_by_url(url)
+        <!-- Table for player stats -->
+        <div class="scroll-container">
+            <table id="player-table">
+                <thead>
+                    <tr>
+                        <th>Team</th>
+                        <th>Opponent</th>
+                        <th>Player</th>
+                        <th>Minutes</th>
+                        <th>Points</th>
+                        <th>Assists</th>
+                        <th>Rebounds</th>
+                        <th>Threes</th>
+                    </tr>
+                </thead>
+                <!-- Data will be inserted here dynamically -->
+            </table>
+        </div>
+    </div>
 
-    # Select the specific worksheet by title (using the specified sheet_name)
-    worksheet = doc.worksheet(sheet_name)
+    <script>
+        // Function to handle file input change
+        document.querySelector('#file-input').addEventListener('change', handleFileUpload);
 
-    # Retrieve data from the worksheet
-    data = worksheet.get_all_values()
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
 
-    # Convert the data to a Pandas DataFrame
-    sheet_df = pd.DataFrame(data[1:], columns=data[0])
+            if (file) {
+                // Handle the uploaded file, e.g., read and process the CSV data
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const csvData = e.target.result;
 
-    # Now 'sheet_df' contains the data as a DataFrame
-    return sheet_df
+                    // Process the CSV data (parse and update the table)
+                    processDataFromCSV(csvData);
+                };
+                reader.readAsText(file);
+            }
+        }
 
-@app.route('/')
-def index():
-    sheet1_name = 'Dashboard'
-    data_frame1 = fetch_data(sheet1_name)
+        // Function to process data from the uploaded CSV
+        function processDataFromCSV(csvData) {
+            // Parse and process the CSV data, then update the table
+            const lines = csvData.split('\n');
+            const playerTable = document.querySelector('#player-table');
 
-    # Convert the DataFrame to an HTML table without escaping HTML entities
-    table_html = data_frame1.to_html(classes='table table-bordered', index=False, escape=False)
+            // Your code to process and update the table based on CSV data here
+        }
+    </script>
+</body>
+</html>
 
-    return render_template('player_info.html', table=table_html)
-
-if __name__ == '__main__':
-    app.run(debug=True)
